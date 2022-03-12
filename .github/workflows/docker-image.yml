@@ -23,4 +23,4 @@ jobs:
       run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/shadowbot:latest
       
     - name: Push
-      run: docker push ${{secrets.DOCKER_USER}}/lathbot
+      run: docker push ${{secrets.DOCKER_USER}}/shadowbot
