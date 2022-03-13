@@ -11,9 +11,9 @@ namespace ShadowBot.MLComponent
         static ToxicModelManager()
         {
             MLContext = new();
-            if (File.Exists("model.zip"))
+            if (File.Exists("Model/model.zip"))
             {
-                Model = MLContext.Model.Load("model.zip", out _);
+                Model = MLContext.Model.Load("Model/model.zip", out _);
             }
             else
                 InitializeModel();
@@ -32,14 +32,14 @@ namespace ShadowBot.MLComponent
 
             Model = dataPrepEstimator.Fit(data);
 
-            MLContext.Model.Save(Model, data.Schema, "model.zip");
-            //Model = MLContext.Model.Load("model.zip", out _);
+            MLContext.Model.Save(Model, data.Schema, "Model/model.zip");
+            //Model = MLContext.Model.Load("Model/model.zip", out _);
         }
 
         public static void RetrainModel()
         {
             InitializeModel();
-            //var preTrainedModel = MLContext.Model.Load("model.zip", out _);
+            //var preTrainedModel = MLContext.Model.Load("Model/model.zip", out _);
 
             //{Microsoft.ML.Data.TransformerChain<Microsoft.ML.ITransformer>}
             //var originalParams = ((ISingleFeaturePredictionTransformer<object>)(Model as TransformerChain<ITransformer>).LastTransformer).Model; //((ISingleFeaturePredictionTransformer<object>)preTrainedModel).Model;

@@ -91,7 +91,7 @@ namespace ShadowBot
             //Register timer events
             timer.Elapsed += Events.TimerElapsed;
 
-            if (File.GetLastWriteTime("model.zip") < DateTime.Now - TimeSpan.FromSeconds(5))
+            if (File.GetLastWriteTime("Model/model.zip") < DateTime.Now - TimeSpan.FromSeconds(5))
                 _ = Task.Run(() => ToxicModelManager.RetrainModel());
 
             timer.Start();
