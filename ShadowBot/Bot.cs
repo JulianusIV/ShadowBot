@@ -83,8 +83,12 @@ namespace ShadowBot
             SlashCommands = Client.UseSlashCommands();
 
             //Register ApplicationCommands
+#if DEBUG
             SlashCommands.RegisterCommands<SlashCommands>(512370308532142091);
             SlashCommands.RegisterCommands<ContextMenus>(512370308532142091);
+#endif
+            SlashCommands.RegisterCommands<SlashCommands>();
+            SlashCommands.RegisterCommands<ContextMenus>();
 
             //Register Slash events
 
