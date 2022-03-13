@@ -48,30 +48,7 @@ namespace ShadowBot
                 if (guild.ModelAlertsChannelId is null)
                     return;
 
-                var res = ToxicModelManager.Predict(e.Message.Content);
-
-                if (res.PredictedLabel)
-                {
-                    var embedBuilder = new DiscordEmbedBuilder()
-                        .WithTitle($"Message by {e.Author.Username}#{e.Author.Discriminator} ({e.Author.Id}) evaluated as toxic\n\nContent:")
-                        .WithDescription(e.Message.Content)
-                        .AddField("Confidence:", $"{res.Probability * 100}%")
-                        .AddField("Message:", $"[Click me!]({e.Message.JumpLink})")
-                        .WithColor(new DiscordColor(1, 1 - res.Probability, 0));
-
-                    DiscordComponent[] components = new DiscordComponent[]
-                    {
-                        new DiscordButtonComponent(ButtonStyle.Danger, "correct", "Confirm Toxic", emoji: new DiscordComponentEmoji("✔️")),
-                        new DiscordButtonComponent(ButtonStyle.Success, "incorrect", "Not Toxic", emoji: new DiscordComponentEmoji("✖️")),
-                        new DiscordButtonComponent(ButtonStyle.Secondary, "duplicate", "Mark as duplicate", emoji: new DiscordComponentEmoji("🔲"))
-                    };
-
-                    var messageBuilder = new DiscordMessageBuilder()
-                        .WithEmbed(embedBuilder)
-                        .AddComponents(components);
-
-                    await (await sender.GetChannelAsync((ulong)guild.ModelAlertsChannelId)).SendMessageAsync(messageBuilder);
-                }
+                await CheckMessageAsync(sender, e.Message, e.Author, (ulong)guild.ModelAlertsChannelId);
             });
             return Task.CompletedTask;
         }
@@ -87,30 +64,7 @@ namespace ShadowBot
                 if (guild.ModelAlertsChannelId is null)
                     return;
 
-                var res = ToxicModelManager.Predict(e.Message.Content);
-
-                if (res.PredictedLabel)
-                {
-                    var embedBuilder = new DiscordEmbedBuilder()
-                        .WithTitle($"Message by {e.Author.Username}#{e.Author.Discriminator} ({e.Author.Id}) evaluated as toxic\n\nContent:")
-                        .WithDescription(e.Message.Content)
-                        .AddField("Confidence:", $"{res.Probability * 100}%")
-                        .AddField("Message:", $"[Click me!]({e.Message.JumpLink})")
-                        .WithColor(new DiscordColor(1, 1 - res.Probability, 0));
-
-                    DiscordComponent[] components = new DiscordComponent[]
-                    {
-                        new DiscordButtonComponent(ButtonStyle.Danger, "model_correct", "Confirm Toxic", emoji: new DiscordComponentEmoji("✔️")),
-                        new DiscordButtonComponent(ButtonStyle.Success, "model_incorrect", "Not Toxic", emoji: new DiscordComponentEmoji("✖️")),
-                        new DiscordButtonComponent(ButtonStyle.Secondary, "model_duplicate", "Mark as duplicate", emoji: new DiscordComponentEmoji("🔲"))
-                    };
-
-                    var messageBuilder = new DiscordMessageBuilder()
-                        .WithEmbed(embedBuilder)
-                        .AddComponents(components);
-
-                    await (await sender.GetChannelAsync((ulong)guild.ModelAlertsChannelId)).SendMessageAsync(messageBuilder);
-                }
+                await CheckMessageAsync(sender, e.Message, e.Author, (ulong)guild.ModelAlertsChannelId);
             });
             return Task.CompletedTask;
         }
@@ -182,6 +136,34 @@ namespace ShadowBot
                     await (await sender.GetChannelAsync(ulong.Parse(logChannelId))).SendMessageAsync(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
             });
             return Task.CompletedTask;
+        }
+
+        private static async Task CheckMessageAsync(DiscordClient sender, DiscordMessage message, DiscordUser user, ulong alertChannelId)
+        {
+            var res = ToxicModelManager.Predict(message.Content);
+
+            if (res.PredictedLabel)
+            {
+                var embedBuilder = new DiscordEmbedBuilder()
+                    .WithTitle($"Message by {user.Username}#{user.Discriminator} ({user.Id}) evaluated as toxic\n\nContent:")
+                    .WithDescription(message.Content)
+                    .AddField("Confidence:", $"{res.Probability * 100}%")
+                    .AddField("Message:", $"[Click me!]({message.JumpLink})")
+                    .WithColor(new DiscordColor(1, 1 - res.Probability, 0));
+
+                DiscordComponent[] components = new DiscordComponent[]
+                {
+                        new DiscordButtonComponent(ButtonStyle.Danger, "model_correct", "Confirm Toxic", emoji: new DiscordComponentEmoji("✔️")),
+                        new DiscordButtonComponent(ButtonStyle.Success, "model_incorrect", "Not Toxic", emoji: new DiscordComponentEmoji("✖️")),
+                        new DiscordButtonComponent(ButtonStyle.Secondary, "model_duplicate", "Mark as duplicate", emoji: new DiscordComponentEmoji("🔲"))
+                };
+
+                var messageBuilder = new DiscordMessageBuilder()
+                    .WithEmbed(embedBuilder)
+                    .AddComponents(components);
+
+                await(await sender.GetChannelAsync(alertChannelId)).SendMessageAsync(messageBuilder);
+            }
         }
     }
 }
