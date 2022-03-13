@@ -30,8 +30,13 @@ namespace ShadowBot
             {
                 if (e.Author is null || e.Author.IsBot)
                     return;
+                var guild = new DataAccess(Environment.GetEnvironmentVariable("ConnectionString")).GetGuild(e.Guild.Id);
+
+                if (guild.ModelAlertsChannelId is null)
+                    return;
+
                 var res = ToxicModelManager.Predict(e.Message.Content);
-            
+
                 if (res.PredictedLabel)
                 {
                     var embedBuilder = new DiscordEmbedBuilder()
@@ -52,13 +57,13 @@ namespace ShadowBot
                         .WithEmbed(embedBuilder)
                         .AddComponents(components);
 
-                    await (await sender.GetChannelAsync(748253372339060769)).SendMessageAsync(messageBuilder);
+                    await (await sender.GetChannelAsync((ulong)guild.ModelAlertsChannelId)).SendMessageAsync(messageBuilder);
                 }
             });
             return Task.CompletedTask;
         }
 
-        
+
 
         internal static Task MessageUpdated(DiscordClient sender, MessageUpdateEventArgs e)
         {
@@ -66,6 +71,11 @@ namespace ShadowBot
             {
                 if (e.Author is null || e.Author.IsBot)
                     return;
+                var guild = new DataAccess(Environment.GetEnvironmentVariable("ConnectionString")).GetGuild(e.Guild.Id);
+
+                if (guild.ModelAlertsChannelId is null)
+                    return;
+
                 var res = ToxicModelManager.Predict(e.Message.Content);
 
                 if (res.PredictedLabel)
@@ -88,7 +98,7 @@ namespace ShadowBot
                         .WithEmbed(embedBuilder)
                         .AddComponents(components);
 
-                    await (await sender.GetChannelAsync(748253372339060769)).SendMessageAsync(messageBuilder);
+                    await (await sender.GetChannelAsync((ulong)guild.ModelAlertsChannelId)).SendMessageAsync(messageBuilder);
                 }
             });
             return Task.CompletedTask;
@@ -156,7 +166,9 @@ namespace ShadowBot
             _ = Task.Run(async () =>
             {
                 await File.AppendAllTextAsync("error.txt", DateTime.Now + ":\n" + e.Exception.Message + Environment.NewLine + e.Exception.StackTrace + Environment.NewLine);
-                await (await sender.GetChannelAsync(951923827456245810)).SendMessageAsync(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+                var logChannelId = Environment.GetEnvironmentVariable("LogChannelId");
+                if (logChannelId is not null)
+                    await (await sender.GetChannelAsync(ulong.Parse(logChannelId))).SendMessageAsync(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
             });
             return Task.CompletedTask;
         }

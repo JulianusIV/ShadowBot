@@ -2,7 +2,6 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
-using ShadowBot.MLComponent;
 
 namespace ShadowBot.ApplicationCommands
 {
@@ -11,6 +10,16 @@ namespace ShadowBot.ApplicationCommands
         [ContextMenu(ApplicationCommandType.MessageContextMenu, "Report")]
         public async Task ReportMessageMenu(ContextMenuContext ctx)
         {
+            var guild = new DataAccess(Environment.GetEnvironmentVariable("ConnectionString")).GetGuild(ctx.Guild.Id);
+
+            if (guild.ReportChannelId is null)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                   new DiscordInteractionResponseBuilder().WithContent("Report not set up in this Guild")
+                   .AsEphemeral());
+                return;
+            }
+
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder()
                     .WithContent("Report this message as toxic:\n" + ctx.TargetMessage.JumpLink)
@@ -50,9 +59,9 @@ namespace ShadowBot.ApplicationCommands
                     .WithEmbed(embedBuilder)
                     .AddComponents(components);
 
-                await (await ctx.Client.GetChannelAsync(748253372339060769)).SendMessageAsync(messageBuilder);
+                await (await ctx.Client.GetChannelAsync((ulong)guild.ReportChannelId)).SendMessageAsync(messageBuilder);
 
-                await buttonResult.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, 
+                await buttonResult.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
                     new DiscordInteractionResponseBuilder().WithContent("Report successful"));
             }
             else if (buttonResult.Result.Id == "cancel")

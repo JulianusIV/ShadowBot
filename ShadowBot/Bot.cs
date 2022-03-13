@@ -29,7 +29,7 @@ namespace ShadowBot
         public DiscordClient Client { get; private set; }
         public InteractivityExtension Interactivity { get; private set; }
         public SlashCommandsExtension SlashCommands { get; private set; }
-        public int InsertCounter 
+        public int InsertCounter
         {
             get => _insertCounter;
             set
