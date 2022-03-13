@@ -86,10 +86,10 @@ namespace ShadowBot
 #if DEBUG
             SlashCommands.RegisterCommands<SlashCommands>(512370308532142091);
             SlashCommands.RegisterCommands<ContextMenus>(512370308532142091);
-#endif
+#else
             SlashCommands.RegisterCommands<SlashCommands>();
             SlashCommands.RegisterCommands<ContextMenus>();
-
+#endif
             //Register Slash events
 
             //Register timer events
