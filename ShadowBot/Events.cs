@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using ShadowBot.DatabaseModels;
 using ShadowBot.MLComponent;
 using System.Data.SqlClient;
 using System.Timers;
@@ -21,6 +22,18 @@ namespace ShadowBot
 
         internal static Task GuildDownloadCompleted(DiscordClient _, GuildDownloadCompletedEventArgs _1)
         {
+            return Task.CompletedTask;
+        }
+
+        internal static Task GuildCreated(DiscordClient sender, GuildCreateEventArgs e)
+        {
+            _ = Task.Run(async () =>
+            {
+                new DataAccess(Environment.GetEnvironmentVariable("ConnectionString")).CreateGuild(new Guild { Id = e.Guild.Id });
+                var logChannelId = Environment.GetEnvironmentVariable("LogChannelId");
+                if (logChannelId is not null)
+                    await(await sender.GetChannelAsync(ulong.Parse(logChannelId))).SendMessageAsync($"Added new guild {e.Guild.Name} ({e.Guild.Id}) to the database.");
+            });
             return Task.CompletedTask;
         }
 
@@ -62,8 +75,6 @@ namespace ShadowBot
             });
             return Task.CompletedTask;
         }
-
-
 
         internal static Task MessageUpdated(DiscordClient sender, MessageUpdateEventArgs e)
         {

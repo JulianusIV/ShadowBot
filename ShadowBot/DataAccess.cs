@@ -24,17 +24,17 @@ namespace ShadowBot
             {
                 DbCommand.CommandText = "SELECT * FROM Guilds WHERE Id = @id;";
                 DbCommand.Parameters.Clear();
-                DbCommand.Parameters.AddWithValue("id", id);
+                DbCommand.Parameters.AddWithValue("id", (long)id);
                 DbConnection.Open();
                 using SqlDataReader reader = DbCommand.ExecuteReader();
                 reader.Read();
-                long tempModAlerts = (long)reader["ModelAlertsChannelId"];
-                long tempReports = (long)reader["ReportChannelId"];
+                long? tempModAlerts = reader["ModelAlertsChannelId"] is DBNull ? null : (long)reader["ModelAlertsChannelId"];
+                long? tempReports = reader["ReportChannelId"] is DBNull ? null : (long)reader["ReportChannelId"];
                 entity = new()
                 {
                     Id = id,
-                    ModelAlertsChannelId = (ulong)tempModAlerts,
-                    ReportChannelId = (ulong)tempReports
+                    ModelAlertsChannelId = (ulong?)tempModAlerts,
+                    ReportChannelId = (ulong?)tempReports
                 };
                 DbConnection.Close();
             }
@@ -59,9 +59,9 @@ namespace ShadowBot
             {
                 DbCommand.CommandText = "INSERT INTO Guilds (Id, ModelAlertsChannelId, ReportChannelId) VALUES (@id, @alerts, @reports);";
                 DbCommand.Parameters.Clear();
-                DbCommand.Parameters.AddWithValue("id", guild.Id);
-                DbCommand.Parameters.AddWithValue("alerts", guild.ModelAlertsChannelId);
-                DbCommand.Parameters.AddWithValue("reports", guild.ReportChannelId);
+                DbCommand.Parameters.AddWithValue("id", (long)guild.Id);
+                DbCommand.Parameters.AddWithValue("alerts", (long?)guild.ModelAlertsChannelId);
+                DbCommand.Parameters.AddWithValue("reports", (long?)guild.ReportChannelId);
                 DbConnection.Open();
                 DbCommand.ExecuteNonQuery();
                 DbConnection.Close();
@@ -85,9 +85,9 @@ namespace ShadowBot
             {
                 DbCommand.CommandText = "UPDATE Guilds SET ModelAlertsChannelId = @alerts, ReportChannelId = @reports WHERE Id = @id;";
                 DbCommand.Parameters.Clear();
-                DbCommand.Parameters.AddWithValue("id", guild.Id);
-                DbCommand.Parameters.AddWithValue("alerts", guild.ModelAlertsChannelId);
-                DbCommand.Parameters.AddWithValue("reports", guild.ReportChannelId);
+                DbCommand.Parameters.AddWithValue("id", (long)guild.Id);
+                DbCommand.Parameters.AddWithValue("alerts", (long?)guild.ModelAlertsChannelId);
+                DbCommand.Parameters.AddWithValue("reports", (long?)guild.ReportChannelId);
                 DbConnection.Open();
                 DbCommand.ExecuteNonQuery();
                 DbConnection.Close();

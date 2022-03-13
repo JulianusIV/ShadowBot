@@ -68,6 +68,7 @@ namespace ShadowBot
             //Register client events
             Client.Ready += Events.OnClientReady;
             Client.GuildDownloadCompleted += Events.GuildDownloadCompleted;
+            Client.GuildCreated += Events.GuildCreated;
             Client.MessageCreated += Events.MessageCreated;
             Client.MessageUpdated += Events.MessageUpdated;
             Client.ComponentInteractionCreated += Events.ComponentInteractionCreated;
@@ -82,8 +83,8 @@ namespace ShadowBot
             SlashCommands = Client.UseSlashCommands();
 
             //Register ApplicationCommands
-            SlashCommands.RegisterCommands<SlashCommands>();
-            SlashCommands.RegisterCommands<ContextMenus>();
+            SlashCommands.RegisterCommands<SlashCommands>(512370308532142091);
+            SlashCommands.RegisterCommands<ContextMenus>(512370308532142091);
 
             //Register Slash events
 
