@@ -88,6 +88,7 @@ namespace ShadowBot.ApplicationCommands
                    .AsEphemeral());
                 return;
             }
+
             DiscordMessage targetMessage;
             try
             {
@@ -100,7 +101,7 @@ namespace ShadowBot.ApplicationCommands
                     targetMessage = await ctx.Channel.GetMessageAsync(ulong.Parse(messageId[messageId.LastIndexOf('/')..]));
                 }
             }
-            catch (NotFoundException e)
+            catch (NotFoundException)
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                    new DiscordInteractionResponseBuilder().WithContent("Message not found!")
