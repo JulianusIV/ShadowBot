@@ -95,19 +95,19 @@ namespace ShadowBot
                 {
                     case "model_correct":
                     case "model_duplicate":
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:"));
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:").AsEphemeral());
                         break;
                     case "model_incorrect":
                         SendToMaster(client, e);
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as non-toxic"));
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as non-toxic").AsEphemeral());
                         break;
                     case "report_correct":
                         SendToMaster(client, e);
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as toxic"));
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as toxic").AsEphemeral());
                         break;
                     case "report_incorrect":
                     case "report_duplicate":
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:"));
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:").AsEphemeral());
                         break;
                     case "master_confirm":
                         bool isToxic = bool.Parse(e.Message.Embeds[0].Fields.First(x => x.Name == "Reported as Toxic:").Value);
@@ -121,11 +121,11 @@ namespace ShadowBot
 
                             Bot.Instance.InsertCounter++;
                         }
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Added to Database."));
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Added to Database.").AsEphemeral());
                         break;
                     case "master_reject":
                     case "master_duplicate":
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:"));
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:").AsEphemeral());
                         break;
                     default:
                         break;
