@@ -91,6 +91,10 @@ namespace ShadowBot
 
                 await e.Message.ModifyAsync(builder);
 
+                //defer response
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+                //take action and respond
                 switch (e.Id)
                 {
                     case "model_correct":
@@ -193,7 +197,7 @@ namespace ShadowBot
                 .WithEmbed(embedBuilder)
                 .AddComponents(components);
 
-            await (await client.GetGuildAsync(962448797915553822)).GetChannel(962449532438863902).SendMessageAsync(messageBuilder);
+            await (await client.GetGuildAsync(512370308532142091)).GetChannel(512370308976607250).SendMessageAsync(messageBuilder);
         }
     }
 }
