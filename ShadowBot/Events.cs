@@ -99,19 +99,19 @@ namespace ShadowBot
                 {
                     case "model_correct":
                     case "model_duplicate":
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:").AsEphemeral());
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:"));
                         break;
                     case "model_incorrect":
                         SendToMaster(client, e);
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as non-toxic").AsEphemeral());
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as non-toxic"));
                         break;
                     case "report_correct":
                         SendToMaster(client, e);
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as toxic").AsEphemeral());
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as toxic"));
                         break;
                     case "report_incorrect":
                     case "report_duplicate":
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:").AsEphemeral());
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:"));
                         break;
                     case "master_confirm":
                         bool isToxic = bool.Parse(e.Message.Embeds[0].Fields.First(x => x.Name == "Reported as Toxic:").Value);
@@ -125,11 +125,11 @@ namespace ShadowBot
 
                             Bot.Instance.InsertCounter++;
                         }
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Added to Database.").AsEphemeral());
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Added to Database."));
                         break;
                     case "master_reject":
                     case "master_duplicate":
-                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:").AsEphemeral());
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent(":+1:"));
                         break;
                     default:
                         break;
@@ -197,7 +197,7 @@ namespace ShadowBot
                 .WithEmbed(embedBuilder)
                 .AddComponents(components);
 
-            await (await client.GetGuildAsync(512370308532142091)).GetChannel(512370308976607250).SendMessageAsync(messageBuilder);
+            await (await client.GetGuildAsync(962448797915553822)).GetChannel(962449532438863902).SendMessageAsync(messageBuilder);
         }
     }
 }
