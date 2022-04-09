@@ -21,9 +21,7 @@ namespace ShadowBot
         }
 
         internal static Task GuildDownloadCompleted(DiscordClient _, GuildDownloadCompletedEventArgs _1)
-        {
-            return Task.CompletedTask;
-        }
+            => Task.CompletedTask;
 
         internal static Task GuildCreated(DiscordClient sender, GuildCreateEventArgs e)
         {
@@ -32,7 +30,7 @@ namespace ShadowBot
                 new DataAccess(Environment.GetEnvironmentVariable("ConnectionString")).CreateGuild(new Guild { Id = e.Guild.Id });
                 var logChannelId = Environment.GetEnvironmentVariable("LogChannelId");
                 if (logChannelId is not null)
-                    await(await sender.GetChannelAsync(ulong.Parse(logChannelId))).SendMessageAsync($"Added new guild {e.Guild.Name} ({e.Guild.Id}) to the database.");
+                    await (await sender.GetChannelAsync(ulong.Parse(logChannelId))).SendMessageAsync($"Added new guild {e.Guild.Name} ({e.Guild.Id}) to the database.");
             });
             return Task.CompletedTask;
         }
@@ -70,22 +68,21 @@ namespace ShadowBot
         }
 
         internal static void TimerElapsed(object? sender, ElapsedEventArgs e)
-        {
-            _ = Task.Run(() =>
-            {
-                ToxicModelManager.RetrainModel();
-            });
-        }
+            => _ = Task.Run(() => ToxicModelManager.RetrainModel());
 
-        internal static Task ComponentInteractionCreated(DiscordClient _1, ComponentInteractionCreateEventArgs e)
+        internal static Task ComponentInteractionCreated(DiscordClient client, ComponentInteractionCreateEventArgs e)
         {
             _ = Task.Run(async () =>
             {
+                //check if user is mod
                 if (!(await e.Guild.GetMemberAsync(e.User.Id)).Permissions.HasPermission(Permissions.BanMembers))
                     return;
-                if (e.Id != "model_incorrect" && e.Id != "model_correct" && e.Id != "model_duplicate" &&
-                    e.Id != "report_incorrect" && e.Id != "report_correct" && e.Id != "report_duplicate")
+
+                //check if id fits
+                if (!e.Id.StartsWith("model_") && !e.Id.StartsWith("report_") && !e.Id.StartsWith("master_"))
                     return;
+
+                //disable buttons
                 var rows = e.Message.Components.First();
                 var components = rows.Components.ToList();
                 components.ForEach(x => ((DiscordButtonComponent)x).Disable());
@@ -94,34 +91,43 @@ namespace ShadowBot
 
                 await e.Message.ModifyAsync(builder);
 
-                await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-
-                if (e.Id == "model_correct")
+                switch (e.Id)
                 {
-                    await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message confirmed as toxic.").AsEphemeral());
-                    return;
-                }
-                if (e.Id == "model_duplicate" || e.Id == "report_duplicate")
-                {
-                    await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message marked as duplicate.").AsEphemeral());
-                    return;
-                }
-                if (e.Id == "report_incorrect")
-                {
-                    await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message confirmed as not toxic.").AsEphemeral());
-                    return;
-                }
-                bool isToxic = e.Id != "model_incorrect" && e.Id == "report_correct";
-                using SqlConnection connection = new(Environment.GetEnvironmentVariable("ConnectionString"));
-                using SqlCommand command = new($"INSERT INTO dbo.CommentData (comment_text, toxic) VALUES (@commentText, {(isToxic ? 1 : 0)});", connection);
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("commentText", e.Message.Embeds[0].Description);
-                connection.Open();
-                command.ExecuteNonQuery();
+                    case "model_correct":
+                    case "model_duplicate":
+                        break;
+                    case "model_incorrect":
+                        SendToMaster(client, e);
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as non-toxic").AsEphemeral());
+                        break;
+                    case "report_correct":
+                        SendToMaster(client, e);
+                        await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Message submitted as toxic").AsEphemeral());
+                        break;
+                    case "report_incorrect":
+                    case "report_duplicate":
+                        break;
+                    case "master_confirm":
+                        bool isToxic = bool.Parse(e.Message.Embeds[0].Fields.First(x => x.Name == "Reported as Toxic:").Value);
+                        using (SqlConnection connection = new(Environment.GetEnvironmentVariable("ConnectionString")))
+                        using (SqlCommand command = new($"INSERT INTO dbo.CommentData (comment_text, toxic) VALUES (@commentText, {(isToxic ? 1 : 0)});", connection))
+                        {
+                            command.Parameters.Clear();
+                            command.Parameters.AddWithValue("commentText", e.Message.Embeds[0].Description);
+                            connection.Open();
+                            command.ExecuteNonQuery();
 
-                Bot.Instance.InsertCounter++;
+                            Bot.Instance.InsertCounter++;
 
-                await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Successfully submitted.").AsEphemeral());
+                            await e.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder().WithContent("Successfully submitted.").AsEphemeral());
+                        }
+                        break;
+                    case "master_reject":
+                    case "master_duplicate":
+                        break;
+                    default:
+                        break;
+                }
             });
             return Task.CompletedTask;
         }
@@ -162,8 +168,30 @@ namespace ShadowBot
                     .WithEmbed(embedBuilder)
                     .AddComponents(components);
 
-                await(await sender.GetChannelAsync(alertChannelId)).SendMessageAsync(messageBuilder);
+                await (await sender.GetChannelAsync(alertChannelId)).SendMessageAsync(messageBuilder);
             }
+        }
+
+        private static async void SendToMaster(DiscordClient client, ComponentInteractionCreateEventArgs e)
+        {
+            var embedBuilder = new DiscordEmbedBuilder()
+                    .WithTitle($"\n\nContent:")
+                    .WithDescription(e.Message.Embeds[0].Description)
+                    .AddField("Reported as Toxic:", (e.Id != "model_incorrect").ToString())
+                    .WithColor(new DiscordColor(e.Id != "model_incorrect" ? 1 : 0, e.Id != "model_incorrect" ? 0 : 1, 0));
+
+            DiscordComponent[] components = new DiscordComponent[]
+            {
+                new DiscordButtonComponent(ButtonStyle.Danger, "master_confirm", "Confirm", emoji: new DiscordComponentEmoji("✔️")),
+                new DiscordButtonComponent(ButtonStyle.Success, "master_reject", "Reject", emoji: new DiscordComponentEmoji("✖️")),
+                new DiscordButtonComponent(ButtonStyle.Secondary, "master_duplicate", "Mark as duplicate", emoji: new DiscordComponentEmoji("🔲"))
+            };
+
+            var messageBuilder = new DiscordMessageBuilder()
+                .WithEmbed(embedBuilder)
+                .AddComponents(components);
+
+            await (await client.GetGuildAsync(962448797915553822)).GetChannel(962449532438863902).SendMessageAsync(messageBuilder);
         }
     }
 }
