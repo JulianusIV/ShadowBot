@@ -160,5 +160,9 @@ namespace ShadowBot.ApplicationCommands
                 return;
             }
         }
+
+        [SlashCommand("Support", "Get a link to the support Discord server")]
+        public async Task Support(InteractionContext ctx)
+            => await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("https://discord.gg/s7fShrSaXa"));
     }
 }
