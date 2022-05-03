@@ -98,7 +98,7 @@ namespace ShadowBot.ApplicationCommands
                 }
                 else
                 {
-                    targetMessage = await ctx.Channel.GetMessageAsync(ulong.Parse(messageId[messageId.LastIndexOf('/')..]));
+                    targetMessage = await ctx.Channel.GetMessageAsync(ulong.Parse(messageId[messageId.LastIndexOf('/') + 1..]));
                 }
             }
             catch (NotFoundException)
